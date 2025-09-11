@@ -1,0 +1,30 @@
+plugin:
+  id: "hello-plugin"
+  name: "Hello Plugin"
+  version: "0.1.0"
+  description: "Minimal example plugin demonstrating the Digital Me Community SDK"
+  author: "Digital Me Community"
+  license: "Apache-2.0"
+  tags:
+    - "example"
+    - "hello-world"
+    - "demo"
+    - "tutorial"
+  capabilities:
+    greeting: "Generate personalized greetings"
+    echo: "Echo back user input"
+    health: "Provide health status information"
+  config_schema:
+    type: "object"
+    properties:
+      greeting_template:
+        type: "string"
+        default: "Hello, {name}! 👋"
+        description: "Template for greeting messages"
+      max_greetings:
+        type: "integer"
+        default: 1000
+        minimum: 1
+        maximum: 10000
+        description: "Maximum number of greetings to track"
+    additionalProperties: false

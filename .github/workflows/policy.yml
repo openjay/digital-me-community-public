@@ -1,0 +1,224 @@
+name: Repository Policy
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  policy:
+    name: Policy Enforcement
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check file naming conventions
+        run: |
+          echo "Checking file naming conventions..."
+          
+          # Check for phase-specific naming (should be avoided)
+          if find . -name "PHASE_*" -o -name "*_PHASE_*" | grep -q .; then
+            echo "❌ Phase-specific file names found:"
+            find . -name "PHASE_*" -o -name "*_PHASE_*"
+            echo "Please use generic names instead of phase-specific ones"
+            exit 1
+          else
+            echo "✅ No phase-specific file names found"
+          fi
+          
+          # Check for forbidden directories
+          forbidden_dirs=("backup" "temp" "tmp" "old" "legacy")
+          for dir in "${forbidden_dirs[@]}"; do
+            if [ -d "$dir" ]; then
+              echo "❌ Forbidden directory found: $dir"
+              exit 1
+            fi
+          done
+          echo "✅ No forbidden directories found"
+      
+      - name: Check for large files
+        run: |
+          echo "Checking for large files..."
+          
+          # Check for files larger than 5MB
+          if find . -type f -size +5M | grep -q .; then
+            echo "❌ Large files found (>5MB):"
+            find . -type f -size +5M
+            echo "Please use Git LFS for large files or remove them"
+            exit 1
+          else
+            echo "✅ No large files found"
+          fi
+      
+      - name: Check for binary files
+        run: |
+          echo "Checking for binary files..."
+          
+          # Check for common binary file extensions
+          binary_extensions=("*.exe" "*.dll" "*.so" "*.dylib" "*.bin" "*.dat" "*.db" "*.sqlite")
+          for ext in "${binary_extensions[@]}"; do
+            if find . -name "$ext" | grep -q .; then
+              echo "❌ Binary files found: $ext"
+              find . -name "$ext"
+              echo "Please use Git LFS for binary files or remove them"
+              exit 1
+            fi
+          done
+          echo "✅ No binary files found"
+      
+      - name: Check for sensitive file types
+        run: |
+          echo "Checking for sensitive file types..."
+          
+          # Check for sensitive file extensions
+          sensitive_extensions=("*.pem" "*.key" "*.crt" "*.p12" "*.pfx" "*.p8" "*.p12" "*.jks")
+          for ext in "${sensitive_extensions[@]}"; do
+            if find . -name "$ext" | grep -q .; then
+              echo "❌ Sensitive files found: $ext"
+              find . -name "$ext"
+              echo "Please remove sensitive files from the repository"
+              exit 1
+            fi
+          done
+          echo "✅ No sensitive files found"
+      
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for hardcoded secrets..."
+          
+          # Check for common secret patterns
+          secret_patterns=(
+            "password\s*=\s*['\"][^'\"]+['\"]"
+            "secret\s*=\s*['\"][^'\"]+['\"]"
+            "api_key\s*=\s*['\"][^'\"]+['\"]"
+            "token\s*=\s*['\"][^'\"]+['\"]"
+            "private_key\s*=\s*['\"][^'\"]+['\"]"
+          )
+          
+          for pattern in "${secret_patterns[@]}"; do
+            if grep -r -E "$pattern" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" . | grep -v "test" | grep -v "example" | grep -v "stub" | grep -q .; then
+              echo "❌ Potential hardcoded secrets found:"
+              grep -r -E "$pattern" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" . | grep -v "test" | grep -v "example" | grep -v "stub"
+              echo "Please use environment variables or configuration files instead"
+              exit 1
+            fi
+          done
+          echo "✅ No hardcoded secrets found"
+      
+      - name: Check for localhost references
+        run: |
+          echo "Checking for localhost references..."
+          
+          # Check for hardcoded localhost URLs
+          if grep -r "localhost" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" . | grep -v "test" | grep -v "example" | grep -v "stub" | grep -q .; then
+            echo "❌ Hardcoded localhost references found:"
+            grep -r "localhost" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" . | grep -v "test" | grep -v "example" | grep -v "stub"
+            echo "Please use environment variables or configuration for host references"
+            exit 1
+          else
+            echo "✅ No hardcoded localhost references found"
+          fi
+      
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "Checking for TODO/FIXME comments..."
+          
+          # Count TODO/FIXME comments
+          todo_count=$(grep -r -i "TODO\|FIXME" --include="*.py" --include="*.md" . | wc -l)
+          if [ "$todo_count" -gt 10 ]; then
+            echo "⚠️  High number of TODO/FIXME comments found: $todo_count"
+            echo "Please address or remove TODO/FIXME comments before merging"
+            grep -r -i "TODO\|FIXME" --include="*.py" --include="*.md" .
+          else
+            echo "✅ Acceptable number of TODO/FIXME comments: $todo_count"
+          fi
+      
+      - name: Check for debug statements
+        run: |
+          echo "Checking for debug statements..."
+          
+          # Check for debug print statements
+          if grep -r "print(" --include="*.py" . | grep -v "test" | grep -v "example" | grep -v "stub" | grep -q .; then
+            echo "⚠️  Debug print statements found:"
+            grep -r "print(" --include="*.py" . | grep -v "test" | grep -v "example" | grep -v "stub"
+            echo "Please use proper logging instead of print statements"
+          else
+            echo "✅ No debug print statements found"
+          fi
+      
+      - name: Check for unused imports
+        run: |
+          echo "Checking for unused imports..."
+          
+          # This would require a more sophisticated tool like flake8 or pylint
+          # For now, we'll just check for common unused import patterns
+          if grep -r "import.*#" --include="*.py" . | grep -q .; then
+            echo "⚠️  Commented imports found:"
+            grep -r "import.*#" --include="*.py" .
+            echo "Please remove commented imports"
+          else
+            echo "✅ No commented imports found"
+          fi
+      
+      - name: Check for proper license headers
+        run: |
+          echo "Checking for license headers..."
+          
+          # Check that Python files have SPDX license headers
+          python_files=$(find . -name "*.py" -not -path "./.venv/*" -not -path "./venv/*" -not -path "./.git/*")
+          missing_headers=0
+          
+          for file in $python_files; do
+            if ! head -5 "$file" | grep -q "SPDX-License-Identifier"; then
+              echo "❌ Missing license header in: $file"
+              missing_headers=$((missing_headers + 1))
+            fi
+          done
+          
+          if [ "$missing_headers" -gt 0 ]; then
+            echo "❌ $missing_headers files missing license headers"
+            exit 1
+          else
+            echo "✅ All Python files have license headers"
+          fi
+      
+      - name: Check for proper documentation
+        run: |
+          echo "Checking for proper documentation..."
+          
+          # Check that Python modules have docstrings
+          python_files=$(find . -name "*.py" -not -path "./.venv/*" -not -path "./venv/*" -not -path "./.git/*" -not -path "./tests/*")
+          missing_docs=0
+          
+          for file in $python_files; do
+            if ! head -20 "$file" | grep -q '"""'; then
+              echo "❌ Missing docstring in: $file"
+              missing_docs=$((missing_docs + 1))
+            fi
+          done
+          
+          if [ "$missing_docs" -gt 0 ]; then
+            echo "❌ $missing_docs files missing docstrings"
+            exit 1
+          else
+            echo "✅ All Python files have docstrings"
+          fi
+      
+      - name: Check for proper error handling
+        run: |
+          echo "Checking for proper error handling..."
+          
+          # Check for bare except statements
+          if grep -r "except:" --include="*.py" . | grep -v "test" | grep -q .; then
+            echo "⚠️  Bare except statements found:"
+            grep -r "except:" --include="*.py" . | grep -v "test"
+            echo "Please use specific exception types instead of bare except"
+          else
+            echo "✅ No bare except statements found"
+          fi
+      
+      - name: Policy check summary
+        run: |
+          echo "✅ All policy checks passed!"
+          echo "Repository is compliant with Digital Me Community Edition policies."

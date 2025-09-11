@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  hello:
+    build:
+      context: ../..
+      dockerfile: examples/hello_plugin/Dockerfile
+    image: dmce-hello:0.1.0
+    container_name: dmce-hello
+    ports:
+      - "8080:8080"
+    environment:
+      LOG_LEVEL: "INFO"
+      PYTHONUNBUFFERED: "1"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - dmce-network
+
+networks:
+  dmce-network:
+    driver: bridge

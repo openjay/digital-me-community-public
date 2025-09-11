@@ -1,0 +1,63 @@
+name: Public Status Checks
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Daily at midnight
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+          pip install -e .
+      
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          pytest -q --maxfail=1 --disable-warnings
+          echo "✅ All smoke tests passed"
+      
+      - name: Test example plugin
+        run: |
+          echo "Testing example plugin..."
+          python examples/hello_plugin/hello_plugin.py
+          echo "✅ Example plugin test passed"
+      
+      - name: Check service health endpoint
+        run: |
+          echo "Testing service health endpoint..."
+          # Start the service in background
+          python -m uvicorn examples.hello_plugin.service:app --host 0.0.0.0 --port 8080 &
+          SERVICE_PID=$!
+          
+          # Wait for service to start
+          sleep 5
+          
+          # Test health endpoint
+          curl -f http://localhost:8080/health || exit 1
+          echo "✅ Health endpoint test passed"
+          
+          # Test metrics endpoint
+          curl -f http://localhost:8080/metrics || exit 1
+          echo "✅ Metrics endpoint test passed"
+          
+          # Clean up
+          kill $SERVICE_PID
+      
+      - name: Update status badge
+        run: |
+          echo "✅ All status checks passed at $(date)"
+          echo "::notice title=Status Check::All systems operational"

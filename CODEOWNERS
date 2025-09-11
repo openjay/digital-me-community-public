@@ -1,0 +1,90 @@
+# Digital Me Community Edition - Code Owners
+# This file defines who is responsible for different parts of the codebase
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners - these users/teams will be requested for review on all PRs
+* @yourorg/platform-core
+
+# Core SDK and framework
+/src/digital_me_community/ @yourorg/platform-core @yourorg/architecture-team
+
+# Plugin framework and base classes
+/src/digital_me_community/plugin_base.py @yourorg/platform-core
+/src/digital_me_community/sdk.py @yourorg/platform-core
+
+# Provider implementations
+/src/digital_me_community/providers/ @yourorg/platform-core @yourorg/integrations-team
+
+# Examples and documentation
+/examples/ @yourorg/devrel @yourorg/community-team
+/docs/ @yourorg/devrel @yourorg/community-team
+/README.md @yourorg/devrel @yourorg/community-team
+/SETUP_GUIDE.md @yourorg/devrel @yourorg/community-team
+/ENTERPRISE_INTEGRATION.md @yourorg/enterprise-team
+
+# CI/CD and workflows
+/.github/workflows/ @yourorg/devex @yourorg/platform-core
+/.github/ISSUE_TEMPLATE/ @yourorg/community-team
+/Makefile @yourorg/devex
+
+# Configuration files
+/pyproject.toml @yourorg/platform-core @yourorg/devex
+/requirements*.txt @yourorg/platform-core
+/.gitignore @yourorg/devex
+
+# Governance and community files
+/LICENSE @yourorg/legal @yourorg/platform-core
+/CODE_OF_CONDUCT.md @yourorg/community-team
+/CONTRIBUTING.md @yourorg/community-team @yourorg/devrel
+/SECURITY.md @yourorg/security-team @yourorg/platform-core
+
+# Tests
+/tests/ @yourorg/platform-core @yourorg/qa-team
+
+# Development and build tools
+/Makefile @yourorg/devex
+/.pre-commit-config.yaml @yourorg/devex
+
+# Documentation
+/docs/ @yourorg/devrel @yourorg/community-team
+*.md @yourorg/devrel @yourorg/community-team
+
+# Enterprise features (if any)
+/enterprise/ @yourorg/enterprise-team @yourorg/platform-core
+
+# Security-related files
+/SECURITY.md @yourorg/security-team
+/.github/workflows/security.yml @yourorg/security-team
+/security/ @yourorg/security-team
+
+# API and integration files
+/api/ @yourorg/platform-core @yourorg/integrations-team
+/integrations/ @yourorg/integrations-team
+
+# Monitoring and observability
+/monitoring/ @yourorg/platform-core @yourorg/sre-team
+/metrics/ @yourorg/platform-core @yourorg/sre-team
+
+# Database and data files
+/database/ @yourorg/platform-core @yourorg/data-team
+/migrations/ @yourorg/platform-core @yourorg/data-team
+
+# Docker and containerization
+/Dockerfile @yourorg/devex @yourorg/platform-core
+/docker-compose*.yml @yourorg/devex @yourorg/platform-core
+/.dockerignore @yourorg/devex
+
+# Kubernetes and deployment
+/k8s/ @yourorg/devex @yourorg/platform-core
+/helm/ @yourorg/devex @yourorg/platform-core
+/deployment/ @yourorg/devex @yourorg/platform-core
+
+# Scripts and utilities
+/scripts/ @yourorg/devex @yourorg/platform-core
+/tools/ @yourorg/devex @yourorg/platform-core
+
+# Temporary and build directories (should not be committed)
+/build/ @yourorg/devex
+/dist/ @yourorg/devex
+/.venv/ @yourorg/devex
+/__pycache__/ @yourorg/devex
